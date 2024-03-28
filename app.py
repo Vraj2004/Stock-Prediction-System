@@ -10,9 +10,9 @@ model = load_model(r'C:\Users\vrajs\OneDrive\Desktop\Stock Prediction Tool\Stock
 
 st.header('Stock Market Predictor')
 
-stock = st.text_input("Enter Stock Symbol", "GOOG")
+stock = st.text_input("Enter Stock Symbol", "GOOG") # This needs to be changed so there is no default value
 start = '2012-01-01'
-end = '2024-01-01'
+end = '2024-01-01' # Change this to current date
 
 data = yf.download(stock, start, end)
 
@@ -71,6 +71,9 @@ scale = 1/scaler.scale_
 predict = predict * scale
 y = y * scale
 
+# CHANGE NEEDED
+
+# Make it in terms of years at the bottom and price on the side
 st.subheader('Original vs Predicted Price')
 fig4 = plt.figure(figsize=(8, 6))
 plt.plot(predict, 'r', label='Original Price')
@@ -80,5 +83,10 @@ plt.ylabel('Price')
 plt.show()
 st.pyplot(fig4)
 
+# Features to add
+
+# 1. Give user an estimate on how much profit they make by basically reading graph, sell value - buy value
+# 2. Try to save favourites and the latest data for it
+# 3. Make the UI better
 
 
