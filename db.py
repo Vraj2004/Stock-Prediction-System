@@ -23,7 +23,7 @@ def load_db():
 def add_favorite(favorite):
     favorites_list = get_favorites()
 
-    if len(favorites_list) == 0:  # Remove extra parentheses
+    if len(favorites_list) == 0:
         # Insert new row
         cursor.execute("INSERT INTO user_favs (username, favs) VALUES (?, ?)", (username, favorite))
     if favorite in favorites_list:
@@ -37,7 +37,7 @@ def add_favorite(favorite):
 def remove_favorite(favorite):
     favorites_list = get_favorites()
 
-    if len(favorites_list) == 0:  # Remove extra parentheses
+    if len(favorites_list) == 0:
         return
 
     if favorite not in favorites_list:
@@ -49,7 +49,7 @@ def remove_favorite(favorite):
 
 def get_favorites():
     cursor.execute("SELECT favs FROM user_favs WHERE username=?", (username,))
-    row = cursor.fetchone()  # Use cursor instead of connection
+    row = cursor.fetchone()
     if row:
         favorites = row[0]
         if favorites:
