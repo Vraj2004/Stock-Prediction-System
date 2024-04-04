@@ -5,6 +5,13 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
+import db
+
+
+db.load_db()
+
+def get_username():
+    return ''
 
 model = load_model(r'C:\Users\vrajs\OneDrive\Desktop\Stock Prediction Tool\Stock Predictions Model.keras')
 
@@ -89,4 +96,4 @@ st.pyplot(fig4)
 # 2. Try to save favourites and the latest data for it (Kinda similar to end of first part)
 # 3. Make the UI better
 
-
+db.close()
