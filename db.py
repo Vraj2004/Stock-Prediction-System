@@ -1,7 +1,7 @@
 import sqlite3
-import app
+from app import get_username
 
-username = app.get_username()
+username = get_username()
 
 class favorite_exists_exception(Exception):
     pass
