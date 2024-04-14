@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import app, home
+import getPrediction, home
 
 st.set_page_config(
     page_title="StockApp",
@@ -19,4 +19,16 @@ class Mutliapp:
     
     def run():
         with st.sidebar:
-            
+            app = option_menu(
+                menu_title="Stock Prediction Tool",
+                options=['Home', 'Get Prediction'],
+                icons=['house-fill'],
+
+
+            )
+        if app=='Home':
+            home.app()
+        
+        if app=='Get Prediction':
+            getPrediction.app()
+    run()
