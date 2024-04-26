@@ -1,4 +1,8 @@
 import streamlit as st
 
 def app():
-    st.write('welcome')
+    name = st.text_input("Enter your name")
+
+    if name == 'Vraj':
+        print('Hello')
+    

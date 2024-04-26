@@ -23,8 +23,6 @@ class Mutliapp:
                 menu_title="Stock Prediction Tool",
                 options=['Home', 'Get Prediction'],
                 icons=['house-fill'],
-
-
             )
         if app=='Home':
             home.app()
