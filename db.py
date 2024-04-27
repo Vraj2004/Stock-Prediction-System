@@ -58,3 +58,5 @@ def get_favorites():
 
 def close():
     connection.close()
+
+
