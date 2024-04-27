@@ -9,8 +9,6 @@ from sklearn.preprocessing import MinMaxScaler
 def app():
     model = load_model(r'C:\Users\vrajs\OneDrive\Desktop\Stock Prediction Tool\Stock Predictions Model.keras')
 
-    st.header('Stock Market Predictor')
-
     stock = st.text_input("Enter Stock Symbol", "GOOG") # This needs to be changed so there is no default value
     start = '2012-01-01'
     end = '2024-01-01' # Change this to current date
@@ -89,5 +87,12 @@ def app():
     # 1. Give user an estimate on how much profit they make by basically reading graph, sell value - buy value, store these values so they can keep track of it, add DB
     # 2. Try to save favourites and the latest data for it (Kinda similar to end of first part)
     # 3. Make the UI better
+
+    def setName(name):
+        pass 
+    
+    def getName():
+        return name
+
 
 
