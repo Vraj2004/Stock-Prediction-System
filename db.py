@@ -1,5 +1,5 @@
 import sqlite3
-from app import get_username
+from getPrediction import get_username
 
 username = get_username()
 
