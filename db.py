@@ -17,7 +17,7 @@ def load_db():
     connection.commit()
 
 def add_favorite(favorite):
-    favorites_list = get_favorites()
+    favorites_list = get_favorites() or []
 
     if len(favorites_list) == 0:
         # Insert new row
@@ -28,10 +28,11 @@ def add_favorite(favorite):
         # Update favorites
         favorites_list.append(favorite)
         cursor.execute("UPDATE user_favs SET favs=? WHERE username=?", (','.join(favorites_list), get_username()))
+
     connection.commit()
 
 def remove_favorite(favorite):
-    favorites_list = get_favorites()
+    favorites_list = get_favorites() or []
 
     if len(favorites_list) == 0:
         return
@@ -44,11 +45,11 @@ def remove_favorite(favorite):
     connection.commit()
 
 def get_favorites():
-    cursor.execute("SELECT favs FROM user_favs WHERE username=?", (get_username()))
+    cursor.execute("SELECT favs FROM user_favs WHERE username=?", (get_username(),))
     row = cursor.fetchone()
     if row:
         favorites = row[0]
-        if favorites:
+        if favorites is not None:
             return favorites.split(',')
     return []
 
