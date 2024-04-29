@@ -1,4 +1,6 @@
 import streamlit as st
+
+import db
 import home
 
 st.set_page_config(
@@ -15,8 +17,9 @@ class Mutliapp:
             "title": title,
             "function": function
         })
-    
+
     def run():
+        db.load_db()
         home.app()
-        
+
     run()

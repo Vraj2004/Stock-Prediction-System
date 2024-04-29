@@ -1,11 +1,7 @@
 import sqlite3
 from getPrediction import get_username
-
-username = get_username()
-
 class favorite_exists_exception(Exception):
     pass
-
 class favorite_not_exists_exception(Exception):
     pass
 
@@ -25,13 +21,13 @@ def add_favorite(favorite):
 
     if len(favorites_list) == 0:
         # Insert new row
-        cursor.execute("INSERT INTO user_favs (username, favs) VALUES (?, ?)", (username, favorite))
+        cursor.execute("INSERT INTO user_favs (username, favs) VALUES (?, ?)", (get_username(), favorite))
     if favorite in favorites_list:
         raise favorite_exists_exception()
     else:
         # Update favorites
         favorites_list.append(favorite)
-        cursor.execute("UPDATE user_favs SET favs=? WHERE username=?", (','.join(favorites_list), username))
+        cursor.execute("UPDATE user_favs SET favs=? WHERE username=?", (','.join(favorites_list), get_username()))
     connection.commit()
 
 def remove_favorite(favorite):
@@ -44,19 +40,15 @@ def remove_favorite(favorite):
         raise favorite_not_exists_exception()
     else:
         favorites_list.remove(favorite)
-        cursor.execute("UPDATE user_favs SET favs=? WHERE username=?", (','.join(favorites_list), username))
+        cursor.execute("UPDATE user_favs SET favs=? WHERE username=?", (','.join(favorites_list), get_username()))
     connection.commit()
 
 def get_favorites():
-    cursor.execute("SELECT favs FROM user_favs WHERE username=?", (username,))
+    cursor.execute("SELECT favs FROM user_favs WHERE username=?", (get_username()))
     row = cursor.fetchone()
     if row:
         favorites = row[0]
         if favorites:
             return favorites.split(',')
     return []
-
-def close():
-    connection.close()
-
 

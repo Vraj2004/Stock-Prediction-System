@@ -6,10 +6,29 @@ import matplotlib.pyplot as plt
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 
-def app():
-    model = load_model(r'C:\Users\vrajs\OneDrive\Desktop\Stock Prediction Tool\Stock Predictions Model.keras')
+import db
+
+name = ""
+def get_username():
+    return name
+def app(user):
+    global name
+    name = user
+    model = load_model(r'Stock Prediction Tool\Stock Predictions Model.keras')
 
     stock = st.text_input("Enter Stock Symbol", "GOOG") # This needs to be changed so there is no default value
+
+    is_favorited = stock in db.get_favorites()
+
+    starred = st.checkbox("Star", value=is_favorited, key="star_checkbox")
+
+    if not starred:
+        db.add_favorite(stock)
+        st.write(f"{stock} starred!")
+    else:
+        db.remove_favorite(stock)
+        st.write(f"{stock} unstarred!")
+
     start = '2012-01-01'
     end = '2024-01-01' # Change this to current date
 
@@ -87,12 +106,3 @@ def app():
     # 1. Give user an estimate on how much profit they make by basically reading graph, sell value - buy value, store these values so they can keep track of it, add DB
     # 2. Try to save favourites and the latest data for it (Kinda similar to end of first part)
     # 3. Make the UI better
-
-    def setName(name):
-        pass 
-    
-    def getName():
-        return name
-
-
-
