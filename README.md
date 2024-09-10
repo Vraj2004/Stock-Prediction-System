@@ -1,1 +1,1 @@
-# Stock-Predicion-System
+# Stock-Prediction-System
