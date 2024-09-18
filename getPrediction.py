@@ -1,98 +1,130 @@
+import keras
 import numpy as np
 import pandas as pd
-import streamlit as st
 import yfinance as yf
 import matplotlib.pyplot as plt
-from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
+import streamlit as st
+from db import add_favorite, remove_favorite, favorite_exists_exception, favorite_not_exists_exception, get_favorites
 
-def app():
-    model = load_model(r'C:\Users\vrajs\OneDrive\Desktop\Stock Prediction Tool\Stock Predictions Model.keras')
+load_model = keras.models.load_model
 
-    stock = st.text_input("Enter Stock Symbol", "GOOG") # This needs to be changed so there is no default value
-    start = '2012-01-01'
-    end = '2024-01-01' # Change this to current date
+def app(username):
+    model = load_model('Stock Predictions Model.keras')
+    stock = st.text_input("Enter Stock Symbol")
 
-    data = yf.download(stock, start, end)
+    if not stock:
+        st.warning("Please enter a stock symbol.")
+        return
+
+    handle_favorites(username, stock)
+    data = get_stock_data(stock)
 
     st.subheader('Stock Data')
     st.write(data)
 
-    data_train = pd.DataFrame(data.Close[0: int(len(data) * 0.80)])
-    data_test = pd.DataFrame(data.Close[int(len(data) * 0.80): len(data)])
+    # Train-test split and scaling
+    data_train, data_test_scaled, scaler = preprocess_data(data)
 
-    scaler = MinMaxScaler(feature_range=(0,1))
+    # Plotting
+    plot_moving_averages(data)
 
+    # Predict prices
+    predict_prices(data_test_scaled, model, scaler)
+
+
+def get_stock_data(stock, start='2012-01-01', end=None):
+    # Fetch stock data using yfinance.
+    end = end or pd.Timestamp.today().strftime('%Y-%m-%d')
+    return yf.download(stock, start, end)
+
+def preprocess_data(data):
+    # Preprocess data by splitting into training and scaling
+    data_train = pd.DataFrame(data.Close[0:int(len(data) * 0.80)])
+    data_test = pd.DataFrame(data.Close[int(len(data) * 0.80):])
     past_100_days = data_train.tail(100)
     data_test = pd.concat([past_100_days, data_test], ignore_index=True)
-    data_test_scale = scaler.fit_transform(data_test)
 
-    st.subheader('Price vs Moving Average 50')
-    ma_50_days = data.Close.rolling(50).mean()
-    fig1 = plt.figure(figsize=(8, 6))
-    plt.plot(ma_50_days, 'r')
-    plt.plot(data.Close, 'g')
-    plt.show()
-    st.pyplot(fig1)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data_test_scaled = scaler.fit_transform(data_test)
 
-    st.subheader('Price vs Moving Average 50 vs Moving Average 100')
-    ma_100_days = data.Close.rolling(100).mean()
-    fig2 = plt.figure(figsize=(8, 6))
-    plt.plot(ma_50_days, 'r')
-    plt.plot(ma_100_days, 'b')
-    plt.plot(data.Close, 'g')
-    plt.show()
-    st.pyplot(fig2)
+    return data_train, data_test_scaled, scaler
 
-    st.subheader('Price vs Moving Average 50 vs Moving Average 100 vs Moving Average 200')
-    ma_200_days = data.Close.rolling(200).mean()
-    fig2 = plt.figure(figsize=(8, 6))
-    plt.plot(ma_50_days, 'r')
-    plt.plot(ma_100_days, 'b')
-    plt.plot(data.Close, 'g')
-    plt.plot(ma_200_days, 'y')
-    plt.show()
-    st.pyplot(fig2)
+def plot_moving_averages(data):
+    # Plot stock price with moving averages
+    ma_50 = data.Close.rolling(50).mean()
+    ma_100 = data.Close.rolling(100).mean()
+    ma_200 = data.Close.rolling(200).mean()
 
-    x = []
-    y = []
+    st.subheader('Price vs Moving Averages (50, 100, 200)')
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(data.Close, 'g', label='Price')
+    plt.plot(ma_50, 'r', label='MA 50')
+    plt.plot(ma_100, 'b', label='MA 100')
+    plt.plot(ma_200, 'y', label='MA 200')
+    plt.legend()
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    st.pyplot(fig)
 
-    for i in range(100, data_test_scale.shape[0]):
-        x.append(data_test_scale[i - 100:i])
-        y.append(data_test_scale[i, 0])
 
-    x, y = np.array(x), np.array(y)
+def predict_prices(data_test_scaled, model, scaler):
+    # Predict stock prices and plot original vs predicted prices
+    x, y = create_prediction_dataset(data_test_scaled)
+    predictions = model.predict(x)
 
-    predict = model.predict(x)
-
-    scale = 1/scaler.scale_
-
-    predict = predict * scale
+    # Rescale predictions and true values
+    scale = 1 / scaler.scale_
+    predictions = predictions * scale
     y = y * scale
 
-    # CHANGE NEEDED
-
-    # Make it in terms of years at the bottom and price on the side
+    # Plot original vs predicted prices
     st.subheader('Original vs Predicted Price')
-    fig4 = plt.figure(figsize=(8, 6))
-    plt.plot(predict, 'r', label='Original Price')
-    plt.plot(y, 'g', label='Predicted Price')
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(predictions, 'r', label='Predicted Price')
+    plt.plot(y, 'g', label='Original Price')
+    plt.legend()
     plt.xlabel('Time')
     plt.ylabel('Price')
-    plt.show()
-    st.pyplot(fig4)
+    st.pyplot(fig)
 
-    # Features to add
-
-    # 1. Give user an estimate on how much profit they make by basically reading graph, sell value - buy value, store these values so they can keep track of it, add DB
-    # 2. Try to save favourites and the latest data for it (Kinda similar to end of first part)
-    # 3. Make the UI better
-
-    def setName(name):
-        pass 
-    
-    def getName():
-        return name
+def create_prediction_dataset(data):
+    # Create dataset for making predictions
+    x, y = [], []
+    for i in range(100, data.shape[0]):
+        x.append(data[i - 100:i])
+        y.append(data[i, 0])
+    return np.array(x), np.array(y)
 
 
+def handle_favorites(username, stock):
+    # Handle favorite stock logic: toggle favorite, show status
+    favorites = get_favorites(username)
+    is_favorite = stock in favorites
+    star_icon = '⭐' if is_favorite else '☆'
 
+    col1, col2 = st.columns([1, 9])
+    with col1:
+        if st.button(star_icon):
+            toggle_favorite(username, stock, is_favorite)
+    with col2:
+        st.subheader(f'Stock Data for {stock}')
+
+def toggle_favorite(username, stock, is_favorite):
+    # Toggle favorite status of the stock
+    try:
+        if is_favorite:
+            remove_favorite(username, stock)
+            st.success(f'Removed {stock} from favorites.')
+        else:
+            add_favorite(username, stock)
+            st.success(f'Added {stock} to favorites.')
+    except (favorite_exists_exception, favorite_not_exists_exception) as e:
+        st.error(str(e))
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+
+
+# Features to add
+
+# 1. Give user an estimate on how much profit they make by basically reading graph, sell value - buy value, store these values so they can keep track of it, add DB

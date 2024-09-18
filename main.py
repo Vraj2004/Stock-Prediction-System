@@ -1,22 +1,25 @@
 import streamlit as st
-import home
+from auth import authenticate
+from home import app as home_app
+from db import load_db, close_db
 
-st.set_page_config(
-    page_title="StockApp",
-)
+def main():
+    st.title("Stock Market Prediction Tool")
 
-class Mutliapp:
+    load_db()  # Initialize the databases
 
-    def __init__(self):
-        self.apps = []
+    if 'authenticated' not in st.session_state:
+        st.session_state['authenticated'] = False
 
-    def add_app(self, title, function):
-        self.apps.append({
-            "title": title,
-            "function": function
-        })
-    
-    def run():
-        home.app()
-        
-    run()
+    # If the user is not authenticated, prompt for username and authenticate
+    if not st.session_state['authenticated']:
+        authenticate()
+    else:
+        # Once authenticated, proceed to the app's main functionality
+        st.write("You are logged in!")
+        home_app(st.session_state['username'])
+
+    close_db()
+
+if __name__ == "__main__":
+    main()
