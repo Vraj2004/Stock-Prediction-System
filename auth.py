@@ -24,8 +24,10 @@ def authenticate():
             password_strength_issue = password_strength(password)
             if password_strength_issue:
                 st.error(password_strength_issue)
+                return
             if password != confirm_password:
                 st.error("Passwords do not match!")
+                return
             else:
                 try:
                     register_user(username, password)
@@ -60,14 +62,16 @@ def authenticate():
         st.rerun()
 
 def password_strength(password):
+    msg = None
+
     if len(password) < 8:
-        return "Password must be at least 8 characters long."
+        msg += "Password must be at least 8 characters long."
     if not re.search(r'[A-Z]', password):
-        return "Password must contain at least one uppercase letter."
+        msg += "Password must contain at least one uppercase letter."
     if not re.search(r'[a-z]', password):
-        return "Password must contain at least one lowercase letter."
+        msg += "Password must contain at least one lowercase letter."
     if not re.search(r'[0-9]', password):
-        return "Password must contain at least one digit."
+        msg += "Password must contain at least one digit."
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return "Password must contain at least one special character."
-    return None  # No issues found, password is strong
+        msg += "Password must contain at least one special character."
+    return msg  # No issues found, password is strong
